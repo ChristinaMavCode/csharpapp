@@ -1,3 +1,4 @@
+using CSharpApp.Api;
 using CSharpApp.Core.Commands;
 using CSharpApp.Core.Queries;
 using MediatR;
@@ -24,8 +25,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-//app.UseHttpsRedirection();
+app.UseMiddleware<PerformanceLoggingMiddleware>();
 
 var versionedEndpointRouteBuilder = app.NewVersionedApi();
 
