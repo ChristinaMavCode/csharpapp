@@ -53,4 +53,28 @@ versionedEndpointRouteBuilder.MapPost("api/v{version:apiVersion}/createproduct",
     })
     .WithName("CreateProduct").HasApiVersion(1.0);
 
+versionedEndpointRouteBuilder.MapGet("api/v{version:apiVersion}/getcategories",
+    async ([FromServices] IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetAllCategoriesQuery());
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+    })
+    .WithName("GetCategories").HasApiVersion(1.0);
+
+versionedEndpointRouteBuilder.MapGet("api/v{version:apiVersion}/getcategory/{id:int}",
+    async ([FromRoute] int id, [FromServices] IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetCategoryByIdQuery(id));
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+    })
+    .WithName("GetCategory").HasApiVersion(1.0);
+
+versionedEndpointRouteBuilder.MapPost("api/v{version:apiVersion}/createcategory",
+    async ([FromBody] CreateCategoryCommand command, [FromServices] IMediator mediator) =>
+    {
+        var category = await mediator.Send(command);
+        return Results.Created($"/api/v1/categories/{category.Id}", category);
+    })
+    .WithName("CreateCategory").HasApiVersion(1.0);
+
 app.Run();

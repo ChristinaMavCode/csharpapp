@@ -2,25 +2,25 @@ using CSharpApp.Core.Commands;
 
 namespace CSharpApp.Application.Products;
 
-public class ProductsService : IProductsService
+public class CategoriesService : ICategoriesService
 {
     private readonly CSharpAppClient _httpClient;
     private readonly RestApiSettings _restApiSettings;
-    private readonly ILogger<ProductsService> _logger;
+    private readonly ILogger<CategoriesService> _logger;
 
-    public ProductsService(IOptions<RestApiSettings> restApiSettings, ILogger<ProductsService> logger, CSharpAppClient httpClient)
+    public CategoriesService(IOptions<RestApiSettings> restApiSettings, ILogger<CategoriesService> logger, CSharpAppClient httpClient)
     {
         _restApiSettings = restApiSettings.Value;
         _httpClient = httpClient;
         _logger = logger;
     }
 
-    public async Task<IReadOnlyCollection<Product>> GetProducts()
+    public async Task<IReadOnlyCollection<Category>> GetCategories()
     {
         try
         {
-            var content = await _httpClient.GetDataWithAuthAsync(_restApiSettings.Products);
-            var res = JsonSerializer.Deserialize<List<Product>>(content);
+            var content = await _httpClient.GetDataWithAuthAsync(_restApiSettings.Categories);
+            var res = JsonSerializer.Deserialize<List<Category>>(content);
 
             return res.AsReadOnly();
         }
@@ -28,16 +28,16 @@ public class ProductsService : IProductsService
         {
             _logger.LogError($"{ex.Message} {ex.StackTrace}");
 
-            return Array.Empty<Product>();
+            return Array.Empty<Category>();
         }
     }
 
-    public async Task<Product?> GetProduct(int productID)
+    public async Task<Category?> GetCategory(int productID)
     {
         try
         {
-            var content = await _httpClient.GetDataWithAuthAsync($"{_restApiSettings.Products}/{productID}");
-            var res = JsonSerializer.Deserialize<Product>(content);
+            var content = await _httpClient.GetDataWithAuthAsync($"{_restApiSettings.Categories}/{productID}");
+            var res = JsonSerializer.Deserialize<Category>(content);
 
             return res;
         }
@@ -49,11 +49,11 @@ public class ProductsService : IProductsService
         }
     }
 
-    public async Task<Product?> CreateProduct(CreateProductCommand request)
+    public async Task<Category?> CreateCategory(CreateCategoryCommand request)
     {
         try
         {
-            if (!string.IsNullOrWhiteSpace(_restApiSettings.Products))
+            if (!string.IsNullOrWhiteSpace(_restApiSettings.Categories))
             {
                 var options = new JsonSerializerOptions
                 {
@@ -62,13 +62,13 @@ public class ProductsService : IProductsService
 
                 string json = JsonSerializer.Serialize(request, options);
 
-                var content = await _httpClient.PostDataWithAuthAsync(json, _restApiSettings.Products);
-                var result = JsonSerializer.Deserialize<Product>(content, options);
+                var content = await _httpClient.PostDataWithAuthAsync(json, _restApiSettings.Categories);
+                var result = JsonSerializer.Deserialize<Category>(content, options);
                 return result;
             }
             else
             {
-                _logger.LogError($"RestApiSettings.Products is not provided");
+                _logger.LogError($"RestApiSettings.Categories is not provided");
                 return null;
             }
         }

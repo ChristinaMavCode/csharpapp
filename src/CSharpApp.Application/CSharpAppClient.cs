@@ -17,10 +17,10 @@ namespace CSharpApp.Application
         private readonly RestApiSettings _restApiSettings;
         private readonly HttpClientSettings _httpClientSettings;
 
-        public CSharpAppClient(HttpClient httpClient, IOptions<RestApiSettings> restApiSettings, HttpClientSettings httpClientSettings)
+        public CSharpAppClient(HttpClient httpClient, IOptions<RestApiSettings> restApiSettings, IOptions<HttpClientSettings> httpClientSettings)
         {
             _restApiSettings = restApiSettings.Value;
-            _httpClientSettings = httpClientSettings;
+            _httpClientSettings = httpClientSettings.Value;
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(_restApiSettings.BaseUrl!);
         }
@@ -72,7 +72,7 @@ namespace CSharpApp.Application
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<string>();
+            return await response.Content.ReadAsStringAsync();
         }
 
         private string? _cachedToken;
@@ -87,7 +87,7 @@ namespace CSharpApp.Application
 
             var payload = new
             {
-                username = _restApiSettings.Username,
+                email = _restApiSettings.Username,
                 password = _restApiSettings.Password
             };
 
@@ -96,7 +96,7 @@ namespace CSharpApp.Application
 
             var json = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
 
-            if (json == null || !json.TryGetValue("token", out var token))
+            if (json == null || !json.TryGetValue("access_token", out var token))
                 throw new Exception("JWT token not returned from API");
 
             _cachedToken = token;

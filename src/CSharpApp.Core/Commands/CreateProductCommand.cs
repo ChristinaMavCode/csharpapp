@@ -1,5 +1,4 @@
-﻿using CSharpApp.Core.Dtos;
-using CSharpApp.Core.Interfaces;
+﻿using CSharpApp.Core.Interfaces;
 using MediatR;
 
 namespace CSharpApp.Core.Commands
@@ -16,7 +15,7 @@ namespace CSharpApp.Core.Commands
         public List<string> Images { get; set; } = new List<string>(); 
     }
 
-    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Product>
+    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Product?>
     {
         private readonly IProductsService _productsService;
 

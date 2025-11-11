@@ -1,4 +1,5 @@
 using CSharpApp.Application;
+using Microsoft.Extensions.Logging;
 using Polly;
 
 namespace CSharpApp.Infrastructure.Configuration;
@@ -13,15 +14,26 @@ public static class DefaultConfiguration
         services.Configure<RestApiSettings>(configuration!.GetSection(nameof(RestApiSettings)));
 
         var httpClientSettings = configuration.GetSection(nameof(HttpClientSettings)).Get<HttpClientSettings>();
-        services.AddSingleton(httpClientSettings);
-        services.AddHttpClient<CSharpAppClient>().AddTransientHttpErrorPolicy(policy =>
+        if (httpClientSettings != null)
         {
-            return policy.WaitAndRetryAsync(httpClientSettings.RetryCount, _ => TimeSpan.FromSeconds(httpClientSettings.SleepDuration));
-        });
-        services.Configure<HttpClientSettings>(configuration.GetSection(nameof(HttpClientSettings)));
+            services.Configure<HttpClientSettings>(configuration.GetSection(nameof(HttpClientSettings)));
+            services.AddHttpClient<CSharpAppClient>().AddTransientHttpErrorPolicy(policy =>
+            {
+                return policy.WaitAndRetryAsync(httpClientSettings.RetryCount, _ => TimeSpan.FromSeconds(httpClientSettings.SleepDuration));
+            });            
+        }
+        else
+        {
+            httpClientSettings = new HttpClientSettings() { LifeTime = 10, RetryCount = 2, SleepDuration = 100 };
+            services.AddSingleton(httpClientSettings);
+            services.AddHttpClient<CSharpAppClient>().AddTransientHttpErrorPolicy(policy =>
+            {
+                return policy.WaitAndRetryAsync(httpClientSettings.RetryCount, _ => TimeSpan.FromSeconds(httpClientSettings.SleepDuration));
+            });            
+        }
 
         services.AddSingleton<IProductsService, ProductsService>();
-
+        services.AddSingleton<ICategoriesService, CategoriesService>();
         return services;
     }
 }
